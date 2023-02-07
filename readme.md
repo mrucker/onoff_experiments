@@ -12,4 +12,4 @@ Dependencies
     > Scipy (pip install scipy)
     > Matplotlib (pip install matplotlib)
     > Numpy (pip install numpy)
-    > Coba (pip install coba)
+    > Coba (pip install coba==6.2.6)
