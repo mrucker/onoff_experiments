@@ -95,7 +95,7 @@ class CorralNewIGW:
 
     @property
     def params(self):
-        return {"sampler":"new", **dict(zip(['eta','gzero','gscale','tau_min','tau_max','n_taus','kt'],self.args))}
+        return {"sampler":"new", **dict(zip(['eta','gzero','gscale','tau_min','tau_max','n_taus','k_inf'],self.args))}
 
     def update(self, algo, invprop, reward):
 

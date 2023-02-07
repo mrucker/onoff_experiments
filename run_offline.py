@@ -41,22 +41,22 @@ if __name__ == "__main__":
 
     logs = cb.Environments.from_save("./outcomes/online.zip")
 
-    ips_learner = LargeActionLearner(None, ArgmaxPlusDispersion(argmaxblock=MlpArgmax()), .004 , 500, weighted=True, v=2)
-    dir_learner = LargeActionLearner(None, ArgmaxPlusDispersion(argmaxblock=MlpArgmax()), .0075, 750, weighted=False,v=2)
+    ips_learner = LargeActionLearner(None, ArgmaxPlusDispersion(argmaxblock=MlpArgmax()), .004 , 500, IPS=True, v=2)
+    dir_learner = LargeActionLearner(None, ArgmaxPlusDispersion(argmaxblock=MlpArgmax()), .0075, 750, IPS=False,v=2)
 
-    logs_old            = cb.Environments([e for e in logs if e.params['learner']['sampler']=='old'                                     ])
-    logs_new_one_fourth = cb.Environments([e for e in logs if e.params['learner']['sampler']=='new' and e.params['learner']['kt'] == 1/4])
+    logs_old            = cb.Environments([e for e in logs if e.params['learner']['sampler']=='old'                                        ])
+    logs_new_one_fourth = cb.Environments([e for e in logs if e.params['learner']['sampler']=='new' and e.params['learner']['k_inf'] == 1/4])
 
     logs_old            = list(map(MyEnv,logs_old           .shuffle(n=1)))
     logs_new_one_fourth = list(map(MyEnv,logs_new_one_fourth.shuffle(n=1)))
 
     pairs = []
 
-    pairs.extend(zip(repeat(MyLrn(dir_learner,{"sampler":"old",           })), logs_old))
-    pairs.extend(zip(repeat(MyLrn(ips_learner,{"sampler":"new","lb":"1/4" })), logs_new_one_fourth))
+    pairs.extend(zip(repeat(MyLrn(dir_learner,{"sampler":"old",              })), logs_old))
+    pairs.extend(zip(repeat(MyLrn(ips_learner,{"sampler":"new","k_inf":"1/4" })), logs_new_one_fourth))
 
     pairs = sorted(pairs, key=lambda pair: hash(pair[1]))
 
     config = {"processes":8}
     log = "./outcomes/offline.gz"
-    cb.Experiment(pairs, evaluation_task=MyEvaluator(True)).config(**config).run(log).plot_learners
+    cb.Experiment(pairs, evaluation_task=MyEvaluator(True)).config(**config).run(log)
