@@ -2,7 +2,7 @@
 
 This project evaluates the performance of a new large action CB algorithm.
 
-This algorithm has competitive online performance while also generating data exhaust that is more useful for off-policy learning.
+This algorithm has competitive online performance and generates improved data exhaust for offline learning.
 
 The original paper describing the algorithms can be found at <paper_url_to_be_added>.
 
