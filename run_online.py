@@ -23,19 +23,19 @@ if __name__ == "__main__":
     sampler = CorralSmoothIGW(eta=eta, gzero=1, gscale=gz_plus_100_times_t_to_3_4, tau_min=tmin, tau_max=tmax, nalgos=nalgos)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
-    #CappedIGW new k_infty=1/24
+    #CappedIGW k_infty=24
     tmin, tmax, nalgos = 6, 1024, 12
-    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/24)
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=24)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
-    #CappedIGW new k_infty=1/4
+    #CappedIGW k_infty=4
     tmin, tmax, nalgos = 6, 1024, 12
-    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/4)
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=4)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
-    #CappedIGW new k_infty=1/2
+    #CappedIGW k_infty=2
     tmin, tmax, nalgos = 6, 1024, 12
-    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/2)
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=2)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
     datas = [41540,1187,44031,42225]
@@ -47,6 +47,6 @@ if __name__ == "__main__":
     n_take = 10_000
     envs  = envs.shuffle(n=30).take(8*n_take).impute(["median","mode"]).scale("min","minmax",["context","argmax"]).scale(1,1,"rewards").batch(8)
 
-    n_processes = 1
+    n_processes = 3
     log = "./outcomes/online.zip"
-    envs.logged(learners).save(log, overwrite=False, processes=n_processes)
+    envs.logged(learners).save(log, overwrite=True, processes=n_processes)

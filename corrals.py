@@ -139,15 +139,15 @@ class CorralCappedIGW:
         for i,t,x,A,F in zip(count(),tau,X,ahatstar,fhatstar):
             t = t.item()
 
-            inf = (fhat(x,0) if A > .5 else fhat(x,1)).item()
-            sup = F.item()
+            infinium = (fhat(x,0) if A > .5 else fhat(x,1)).item()
+            supremum = F.item()
 
             if self.kappa_infty == 1:
-                beta = self.find_beta_montecarlo(fhat,self.gamma,x,t,inf,sup,1000,1)
+                beta = self.find_beta_montecarlo(fhat,self.gamma,x,t,infinium,supremum,1000,1)
             else:
-                beta = self.find_beta_martingale(fhat,self.gamma,x,t,inf,sup)
+                beta = self.find_beta_martingale(fhat,self.gamma,x,t,supremum)
 
-            m_t        = lambda a: t/(self.lamb+self.gamma*torch.clamp((sup-fhat(x,a))-beta,min=0))
+            m_t        = lambda a: t/(self.lamb+self.gamma*torch.clamp((supremum-fhat(x,a))-beta,min=0))
             normalizer = m_t(A).item()
 
             actions   = self.base_action_sampler(5000)
@@ -195,7 +195,7 @@ class CorralCappedIGW:
             fs.append(f)
             cs.addobs(self.lamb+gamma*(sup-f))
 
-            if t % 10 == 0:
+            if t % 4 == 0:
                 cs.updatelowercs()
                 cs.updateuppercs()
                 l, u = cs.getci()
