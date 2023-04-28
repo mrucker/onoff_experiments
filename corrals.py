@@ -5,12 +5,12 @@ import scipy.optimize as so
 from itertools import count
 from normalizers import BettingNormCS
 
-class CorralOldIGW:
+class CorralSmoothIGW:
 
     def __init__(self, eta, gzero, gscale, tau_min, tau_max, nalgos):
 
         self.lamb     = 1
-        self.args     = (eta,gzero,gscale.__name__,tau_min,tau_max,nalgos,v)
+        self.args     = (eta,gzero,gscale.__name__,tau_min,tau_max,nalgos)
         self.eta      = eta / nalgos
         self.gamma    = gzero
         self.gzero    = gzero
@@ -78,7 +78,7 @@ class CorralOldIGW:
 
         return selected_action, selected_density, algo, invpalgo
 
-class CorralNewIGW:
+class CorralCappedIGW:
 
     def __init__(self, eta, gzero, gscale, tau_min, tau_max, nalgos, kappa_infty=1):
 

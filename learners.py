@@ -1,3 +1,4 @@
+import coba as cb
 import torch
 from math import sqrt
 
@@ -34,31 +35,34 @@ class LargeActionLearner:
             ahatstar = self.model.argmax(context)
             fhatstar = self.model.max().expand(len(actions),-1)
 
+            cb.CobaContext.learning_info["greedy"] = ahatstar.flatten().tolist()
+
             if self.sampler:
                 actions, dense, algo, invpalgo = self.sampler.sample(fhatstar, ahatstar, self.model, context)
-                info = {'algo':algo, 'invpalgo':invpalgo}
+                kwargs = {'algo':algo, 'invpalgo':invpalgo}
             else:
                 actions = ahatstar.squeeze(1).tolist()
                 dense   = [None]*len(context)
-                info    = {}
+                kwargs  = {}
 
-            return actions, dense, info
+            return actions, dense, kwargs
 
     def learn(self, context, actions, action, reward, probs, **kwargs):
         action  = torch.tensor(action).unsqueeze(1)
         context = torch.tensor(context,dtype=torch.float32)
         reward  = torch.tensor(reward).unsqueeze(1)
+
         if not self.opt: self.initialize(context.shape[1])
 
-        weights = torch.tensor([ min(1./p,5) if p and self.IPS else 5 for p in probs ]).unsqueeze(1)
-        
+        weights = torch.tensor([min(1./p,5) if p and self.IPS else 5 for p in probs]).unsqueeze(1)
+
         for _ in range(self.v):
             self.opt.zero_grad()
             score = self.model(context, action)
             loss  = self.loss(score, reward)*weights
             loss.mean().backward()
             self.opt.step()
-        
+
         self.scheduler.step()
 
         if self.sampler:

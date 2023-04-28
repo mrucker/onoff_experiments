@@ -1,6 +1,6 @@
 import coba as cb
 
-from corrals  import CorralOldIGW, CorralNewIGW
+from corrals  import CorralSmoothIGW, CorralCappedIGW
 from oracles  import LinearArgmax, ArgmaxPlusDispersion
 from learners import LargeActionLearner
 
@@ -18,14 +18,24 @@ if __name__ == "__main__":
 
     learners = []
 
-    #old
+    #SmoothIGW
     tmin, tmax, nalgos = 2, 2048, 12
-    sampler = CorralOldIGW(eta=eta, gzero=1, gscale=gz_plus_100_times_t_to_3_4, tau_min=tmin, tau_max=tmax, nalgos=nalgos)
+    sampler = CorralSmoothIGW(eta=eta, gzero=1, gscale=gz_plus_100_times_t_to_3_4, tau_min=tmin, tau_max=tmax, nalgos=nalgos)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
-    #new 1/4
+    #CappedIGW new k_infty=1/24
     tmin, tmax, nalgos = 6, 1024, 12
-    sampler = CorralNewIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/4)
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/24)
+    learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
+
+    #CappedIGW new k_infty=1/4
+    tmin, tmax, nalgos = 6, 1024, 12
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/4)
+    learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
+
+    #CappedIGW new k_infty=1/2
+    tmin, tmax, nalgos = 6, 1024, 12
+    sampler = CorralCappedIGW(eta=eta, gzero=1, gscale=gz_plus_18_times_t, tau_min=tmin, tau_max=tmax, nalgos=nalgos, kappa_infty=1/2)
     learners.append(LargeActionLearner(sampler,ArgmaxPlusDispersion(argmaxblock=LinearArgmax()), lr, tz))
 
     datas = [41540,1187,44031,42225]
