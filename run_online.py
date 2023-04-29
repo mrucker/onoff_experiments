@@ -49,4 +49,4 @@ if __name__ == "__main__":
 
     n_processes = 3
     log = "./outcomes/online.zip"
-    envs.logged(learners).save(log, overwrite=True, processes=n_processes)
+    envs.logged(learners).save(log, overwrite=False, processes=n_processes)
