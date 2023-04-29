@@ -29,7 +29,7 @@ class CorralSmoothIGW:
         assert torch.all(reward >= 0) and torch.all(reward <= 1), reward
 
         weightedlosses = self.eta * (-reward.squeeze(1)) * invprop.squeeze(1)
-        newinvpalgo = torch.scatter(input=self.invpalgo, dim=0, index=algo, src=weightedlosses, reduce='add')
+        newinvpalgo = torch.scatter_reduce(input=self.invpalgo, dim=0, index=algo, src=weightedlosses, reduce='sum')
 
         # just do this calc on the cpu
         invp = newinvpalgo.cpu().numpy()
@@ -103,7 +103,7 @@ class CorralCappedIGW:
         assert torch.all(reward >= 0) and torch.all(reward <= 1), reward
 
         weightedlosses = self.eta * (-reward.squeeze(1)) * invprop.squeeze(1)
-        newinvpalgo = torch.scatter(input=self.invpalgo, dim=0, index=algo, src=weightedlosses, reduce='add')
+        newinvpalgo = torch.scatter_reduce(input=self.invpalgo, dim=0, index=algo, src=weightedlosses, reduce='sum')
 
         # just do this calc on the cpu
         invp = newinvpalgo.cpu().numpy()
