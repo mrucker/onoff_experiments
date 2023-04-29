@@ -1,3 +1,4 @@
+import torch
 import coba as cb
 
 from corrals  import CorralSmoothIGW, CorralCappedIGW
@@ -9,6 +10,10 @@ def gz_plus_100_times_t_to_3_4(gz,g,t):
 
 def gz_plus_18_times_t(gz,g,t):
     return gz + 18*t
+
+#We control threads/processes explicitly in coba.
+#Pytorch's implicit threading can therefore soak our cores.
+torch.set_num_threads(1)
 
 if __name__ == "__main__":
 

@@ -1,3 +1,4 @@
+import torch
 import coba as cb
 
 from itertools import repeat
@@ -36,6 +37,10 @@ class MyLrn:
 
     def predict(self,*args,**kwargs):
         return self._lrn.predict(*args,**kwargs)
+
+#We control threads/processes explicitly in coba.
+#Pytorch's implicit threading can therefore soak our cores.
+torch.set_num_threads(1)
 
 if __name__ == "__main__":
 
