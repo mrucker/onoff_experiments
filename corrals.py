@@ -1,4 +1,5 @@
 import torch
+import coba as cb
 import numpy as np
 import scipy.optimize as so
 
@@ -195,11 +196,12 @@ class CorralCappedIGW:
             fs.append(f)
             cs.addobs(self.lamb+gamma*(sup-f))
 
-            if t % 4 == 0:
+            if t % 10 == 0:
                 cs.updatelowercs()
                 cs.updateuppercs()
                 l, u = cs.getci()
 
             if l > u: break
 
+        cb.CobaContext.learning_info['samples'] = t
         return min(u,l) + torch.rand(size=(1,)).item()*abs(u-l)
