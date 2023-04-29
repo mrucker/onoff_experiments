@@ -168,10 +168,10 @@ class CorralCappedIGW:
     def base_action_sampler(self, n):
         return torch.rand(size=(n,1))
 
-    def find_beta_montecarlo(self,fhat,gamma,x,t,inf,sup,n,target):
+    def find_beta_montecarlo(self,fhat,gamma,x,tau,inf,sup,n,target):
         f = sup-fhat(x.repeat(n,1), torch.arange(0,1,1/n).unsqueeze(1)).cpu().numpy()
-        B = lambda beta: target-t/n*np.sum(1/(self.lamb+gamma*np.clip(f-beta,0,None)))
-        beta, res = so.brentq(B, -t/gamma, (sup-inf), full_output=True)
+        B = lambda beta: target-tau/n*np.sum(1/(self.lamb+gamma*np.clip(f-beta,0,None)))
+        beta, res = so.brentq(B, -tau/gamma, (sup-inf), full_output=True)
         assert res.converged, f"We failed to find a root: {res}."
 
         return beta
