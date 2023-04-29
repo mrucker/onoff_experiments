@@ -203,5 +203,8 @@ class CorralCappedIGW:
 
             if l > u: break
 
-        cb.CobaContext.learning_info['samples'] = t
+        if 'samples' not in cb.CobaContext.learning_info:
+            cb.CobaContext.learning_info['samples'] = []
+        cb.CobaContext.learning_info['samples'].append(t)
+        
         return min(u,l) + torch.rand(size=(1,)).item()*abs(u-l)
