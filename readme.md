@@ -4,7 +4,7 @@ This project evaluates the performance of a new large action CB algorithm.
 
 This algorithm has competitive online performance and generates improved data exhaust for offline learning.
 
-The original paper describing the algorithms can be found at <paper_url_to_be_added>.
+The original paper describing the algorithms can be found at https://arxiv.org/abs/2302.08551.
 
 ## Repo Structure:
 
