@@ -39,7 +39,7 @@ class MyLrn:
         return self._lrn.predict(*args,**kwargs)
 
 #We control threads/processes explicitly in coba.
-#Pytorch's implicit threading can therefore soak our cores.
+#Because of this Pytorch's implicit threading can soak our cores.
 torch.set_num_threads(1)
 
 if __name__ == "__main__":
