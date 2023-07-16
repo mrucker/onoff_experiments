@@ -192,16 +192,17 @@ class CorralCappedIGW:
                 yield from fhat(x,self.base_action_sampler(100)).squeeze().tolist()
 
         for t,f in zip(range(T),batched_base_action_sampler()):
-            
+
             fs.append(f)
-            cs.addobs(self.lamb+gamma*(sup-f))
+            cs.addobs(1+gamma*(f))
 
             if t % 10 == 0:
                 cs.updatelowercs()
                 cs.updateuppercs()
                 l, u = cs.getci()
+                if l > u: break
 
-            if l > u: break
+        print(t)
 
         if 'samples' not in cb.CobaContext.learning_info:
             cb.CobaContext.learning_info['samples'] = []
