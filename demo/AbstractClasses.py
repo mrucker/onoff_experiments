@@ -1,4 +1,4 @@
-from typing import Iterable, Generator, Mapping, Sequence, Callable, Any
+from typing import Generator, Mapping, Sequence, Callable, Any
 from abc import ABC, abstractmethod
 
 GammaScheduler = Callable[[int],float] #e.g., lambda t: sqrt(t)
@@ -21,7 +21,7 @@ class RewardPredictor(ABC):
 
     @abstractmethod
     #one context many actions (add more documentation)
-    def predict(self, context, actions) -> Iterable[float]:
+    def predict(self, context, actions) -> Sequence[float]:
         pass
 
     @abstractmethod

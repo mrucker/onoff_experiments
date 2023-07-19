@@ -253,7 +253,7 @@ if __name__ == '__main__':
         beta_hat = l
         integral = integrate(tau,beta_hat,gamma)
 
-        if not (1/kappa_infty < integral and integral < 1): 
+        if not (1/kappa_infty < integral and integral < 1):
             fails.append((integral, tau, beta_hat, gamma))
 
     gen = np.random.default_rng(45)

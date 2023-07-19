@@ -1,1 +1,0 @@
-This folder is here to be a destination for the output from running the experiments.

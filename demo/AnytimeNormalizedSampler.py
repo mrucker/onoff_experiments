@@ -1,5 +1,5 @@
 from math import log
-from typing import Callable, Tuple, Any
+from typing import Tuple, Any
 
 import torch
 
@@ -40,7 +40,7 @@ class AnytimeNormalizedSampler:
             accept_probs = 1/(1+gamma*torch.clamp(fhats-beta,min=0))
             accept       = accept_probs >= torch.rand(len(actions))
 
-            if accept.any(): 
+            if accept.any():
                 accept_index = accept.nonzero()[0,0]
                 return actions[accept_index], self.tau*accept_probs[accept_index].item()
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
         ns = AnytimeNormalizedSampler(tau,UniformReferencePolicy(),kappa_infty,alpha)
         densities = [ns.sample(None,fhat,gamma)[1] for _ in range(1000)]
-        
+
         mean_density = np.mean(densities)
         if not (1/kappa_infty < mean_density and mean_density < 1):
             fails.append(1)

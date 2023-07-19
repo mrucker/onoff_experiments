@@ -1,7 +1,4 @@
-import coba as cb
-
 class ScaledRewards:
-
     class Reward:
         def __init__(self, label):
             self._label = label

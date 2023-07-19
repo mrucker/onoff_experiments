@@ -3,7 +3,7 @@ import math
 from AbstractClasses import ReferencePolicy, RewardPredictor, GammaScheduler
 from AnytimeNormalizedSampler import AnytimeNormalizedSampler
 
-from coba.primitives import Batch
+import coba as cb
 
 class CappedIGW:
     def __init__(self, *,
@@ -24,11 +24,9 @@ class CappedIGW:
         return {**self.sampler.params, **self.fhat.params}
 
     def predict(self, context, _):
-        if isinstance(context,Batch):
-            return [self.sampler.sample(c, self.fhat, self.gamma_scheduler(self.t)) for c in context]
-        else:
-            return self.sampler.sample(context, self.fhat, self.gamma_scheduler(self.t))
+        assert not isinstance(context,cb.Batch)
+        return self.sampler.sample(context, self.fhat, self.gamma_scheduler(self.t))
 
     def learn(self, contexts, _1, actions, rewards, _2):
-        self.t += len(contexts) if isinstance(contexts,Batch) else 1
+        self.t += len(contexts) if isinstance(contexts,cb.Batch) else 1
         self.fhat.learn(contexts, actions, rewards)
