@@ -193,7 +193,7 @@ class CorralCappedIGW:
                 cs.updatelowercs()
                 cs.updateuppercs()
                 l, u = cs.getci()
-                if u-l < .0001: break
+                if l > u: break
 
         cb.CobaContext.learning_info['samples_martin'].append(n)
         return min(u,l) + torch.rand(size=(1,)).item()*abs(u-l)
