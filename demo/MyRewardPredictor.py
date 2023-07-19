@@ -22,7 +22,7 @@ class MyRewardPredictor(RewardPredictor):
     def predict(self, context: Sequence[float], actions: Sequence[float]) -> Sequence[float]:
         with torch.no_grad():
             context = torch.tensor(context).unsqueeze(0).expand(len(actions),-1)
-            actions = torch.tensor(actions).unsqueeze(1)
+            actions = 10*torch.tensor(actions).unsqueeze(1)
             return self._cauchy_network.reward(torch.cat([context,actions],dim=1))
 
     #these are triples in parallel arrays (TODO: cleanup documentation)
@@ -31,11 +31,12 @@ class MyRewardPredictor(RewardPredictor):
               actions : Sequence[float], 
               rewards : Sequence[float]) -> None:
 
-        contexts = torch.tensor(contexts)
-        actions  = torch.tensor(actions).unsqueeze(1)
+        with torch.no_grad():
+            contexts = torch.tensor(contexts)
+            actions  = 10*torch.tensor(actions).unsqueeze(1)
 
-        X = torch.cat([contexts,actions],dim=1)
-        y = torch.tensor(rewards)
+            X = torch.cat([contexts,actions],dim=1)
+            y = torch.tensor(rewards)
 
         self.opt.zero_grad()
         pred = self._cauchy_network.pre_logits(X)
