@@ -49,3 +49,5 @@ class MyRewardPredictor(RewardPredictor):
 
         with torch.no_grad():
             cb.CobaContext.learning_info['reward_prediction_loss'] = loss.tolist()
+            optimal_loss = self.loss(torch.logit(y),y)
+            cb.CobaContext.learning_info['reward_prediction_regret'] = (loss-optimal_loss).tolist()
