@@ -213,8 +213,8 @@ class UpperMartingale:
 
 class BettingMartingale:
     def __init__(self, *, g, beta_min, beta_max, delta_beta, g_max, kappa, alpha):
-        self.lmart = LowerMartingale(g, beta_min, beta_max, delta_beta, g_max, alpha/2)
-        self.umart = UpperMartingale(g, beta_min, beta_max, delta_beta, kappa, alpha/2)
+        self.lmart = LowerMartingale(g, beta_min, beta_max, delta_beta/2, g_max, alpha/2)
+        self.umart = UpperMartingale(g, beta_min, beta_max, delta_beta/2, kappa, alpha/2)
         
     def addobs(self, fa):
         self.lmart.addobs(fa)
