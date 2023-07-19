@@ -1,45 +1,104 @@
-
-from more_itertools import chunked
 from math import log
-from typing import Callable, Any
+from typing import Callable, Tuple, Any
 
-from AbstractClasses import ReferencePolicy
+import torch
+
+from AbstractClasses import ReferencePolicy, RewardPredictor
 from BettingMartingale import BettingMartingale
 
-class AnytimeNormalizedSampling:
+class AnytimeNormalizedSampler:
 
-    def __init__(self,tau: float, mu: ReferencePolicy, kappa_infty: float, batch_size:int, alpha:float) -> None:
+    def __init__(self, tau: float, mu: ReferencePolicy, kappa_infty: float, alpha:float, delta_beta:float) -> None:
 
         assert tau >= 1
         assert kappa_infty >= 1
+        assert delta_beta >= 0
 
         self.tau         = tau
         self.mu          = mu
         self.kappa_infty = kappa_infty
         self.alpha       = alpha
-        self.batch_size  = batch_size
+        self.delta_beta  = delta_beta
 
     @property
     def params(self):
-        return {'tau': self.tau, 'kappa': self.kappa_infty, 'alpha': self.alpha, **self.mu.params}
+        return {
+            'tau': self.tau,
+            'kappa': self.kappa_infty,
+            'alpha': self.alpha,
+            'delta_beta': self.delta_beta,
+            **self.mu.params
+        }
 
-    def sample(self, contexts, fhat:Callable[[Any],float], gamma:float):
-        return zip(*map(lambda c:self._sample_one(c,fhat,gamma),contexts))
+    def sample(self, context, fhat:RewardPredictor, gamma:float) -> Tuple[Any,float]:
+        sampler = self.mu.sample(context)
+        beta = self._calculate_beta(context, fhat, gamma, sampler)
+        ensure_tensor = lambda x: x if isinstance(x,torch.Tensor) else torch.tensor(x)
+
+        for actions in sampler:
+            fhats        = ensure_tensor(fhat.predict(context,actions))
+            accept_probs = 1/(1+gamma*torch.clamp(fhats-beta,min=0))
+            accept       = accept_probs >= torch.rand(len(actions))
+
+            if accept.any(): 
+                accept_index = accept.nonzero()[0,0]
+                return actions[accept_index], self.tau*accept_probs[accept_index].item()
+
+    def _calculate_beta(self, context, fhat, gamma, sampler):
+        g = lambda z: self.tau/(1+gamma*max(z,0))
+        N = 1+int(10*self.tau*log(gamma/self.alpha))
+
+        martingale = BettingMartingale(
+            g=g,
+            beta_min=(1-self.tau)/gamma,
+            beta_max=1,
+            delta_beta=self.delta_beta,
+            kappa=self.kappa_infty,
+            g_max=self.tau,
+            alpha=self.alpha
+        )
+
+        n = 0
+        for batch in sampler:
+            fhats = fhat.predict(context,batch)
+
+            for f in fhats:
+                n += 1
+                martingale.addobs(f)
+
+            l,h = martingale.getci()
+            if l + self.delta_beta > h: break
+            if n > N: break
+
+        l = martingale.getci()[0]
+        return l
+
+if __name__ == '__main__':
+    import numpy as np
+    import timeit
+
+    def test_once(gen,fails):
+
+        class UniformReferencePolicy:
+            def sample(self,context):
+                while True:
+                    yield gen.uniform(0,1,size=(100,))
+
+        tau = gen.uniform(50,75)
+        fhat = lambda x,a: 1.*(2*a*tau > 1)
+        gamma = gen.uniform(2,10)
+        kappa_infty = 24
+        alpha = .05
+
+        ns = AnytimeNormalizedSampler(tau,UniformReferencePolicy(),kappa_infty,alpha)
+        densities = [ns.sample(None,fhat,gamma)[1] for _ in range(1000)]
         
-    def _sample_one(self,context,fhat,gamma):
-        n_max = 1+int(10*self.tau*log(gamma/self.alpha))
-        sampler = chunked(self.mu.sample(context), self.batch_size)
+        mean_density = np.mean(densities)
+        if not (1/kappa_infty < mean_density and mean_density < 1):
+            fails.append(1)
 
-        for n in range(1+n_max//self.batch_size):
-
-            batch = next(sampler)
-            fhats = fhat(context,batch)
-
-
-
-        beta_martingale = 
-
-        pass
-        #return (action,density)
-
-        
+    gen = np.random.default_rng(45)
+    number = 10
+    fails = []
+    avruntime = timeit.timeit(lambda: test_once(gen, fails), number=number) / number
+    print({ 'fail_rate': len(fails) / number, 'average runtime (ms)': round(1000 * avruntime, 1) })
