@@ -25,7 +25,7 @@ class MyEvaluator:
             return copy.deepcopy(learner)
 
         def validate(learner,examples):
-            return mean([i['reward'] for i in SimpleEvaluation(learn=False,predict=True).process(learner,examples)])
+            return mean([mean(i['reward']) for i in SimpleEvaluation(learn=False,predict=True).process(learner,examples)])
 
         if not self._epochs:
             for interaction, result in zip(interactions,SimpleEvaluation().process(learner,interactions)):
