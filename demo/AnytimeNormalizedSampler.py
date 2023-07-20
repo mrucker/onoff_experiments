@@ -1,9 +1,9 @@
 from math import log
 from typing import Tuple, Any
 
-import torch
+import numpy
 
-from AbstractClasses import ReferencePolicy, RewardPredictor
+from AbstractClasses import ReferencePolicy, LossPredictor
 from BettingMartingale import BettingMartingale
 
 class AnytimeNormalizedSampler:
@@ -30,19 +30,18 @@ class AnytimeNormalizedSampler:
             **self.mu.params
         }
 
-    def sample(self, context, fhat:RewardPredictor, gamma:float) -> Tuple[Any,float]:
+    def sample(self, context, fhat:LossPredictor, gamma:float) -> Tuple[Any,float]:
         sampler = self.mu.sample(context)
         beta = self._calculate_beta(context, fhat, gamma, sampler)
-        ensure_tensor = lambda x: x if isinstance(x,torch.Tensor) else torch.tensor(x)
 
         for actions in sampler:
-            fhats        = ensure_tensor(fhat.predict(context,actions))
-            accept_probs = 1/(1+gamma*torch.clamp(fhats-beta,min=0))
-            accept       = accept_probs >= torch.rand(len(actions))
+            fhats        = numpy.array(fhat.predict(context,actions))
+            accept_probs = 1/(1+gamma*numpy.clip(fhats-beta,a_min=0,a_max=None))
+            accept       = accept_probs >= numpy.random.rand(len(actions))
 
             if accept.any():
-                accept_index = accept.nonzero()[0,0]
-                return actions[accept_index], self.tau*accept_probs[accept_index].item()
+                accept_index = accept.nonzero()[0][0]
+                return actions[accept_index], self.tau*accept_probs[accept_index]
 
     def _calculate_beta(self, context, fhat, gamma, sampler):
         g = lambda z: self.tau/(1+gamma*max(z,0))
