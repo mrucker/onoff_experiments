@@ -21,7 +21,7 @@ class LetCatEnvironment:
 
             prompt = ""
             for example in action:
-                prompt += f"Problem: {example['instruction']}\nSolution: {example['answer']}\n\n"
+                prompt += f"Problem: {example[0]['instruction']}\nSolution: {example[0]['answer']}\n\n"
             prompt += f"Problem: {self._test['instruction']}\nSolution: "
 
             responses = [ (self._logprobs_from_prompt(prompt+c),c) for c in self._choices ]
