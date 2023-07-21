@@ -12,7 +12,7 @@ class MakeLosses:
         max_l = max([i['rewards']._label for i in interactions])
         for i in interactions:
             scaled_label = (i['rewards']._label-min_l)/(max_l-min_l)
-            i['rewards'] = MakeLosses.LambdaLoss(lambda a: abs(a-scaled_label))
+            i['rewards'] = MakeLosses.LambdaLoss(lambda a,l=scaled_label: abs(a-l))
             yield i
 
 class Tensorize:
