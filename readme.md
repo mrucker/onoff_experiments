@@ -1,4 +1,4 @@
-# Continuous Action Bandits with Data Reuse
+# Infinite Action Bandits with Data Reuse
 
 This project evaluates the performance of a new large action CB algorithm.
 
