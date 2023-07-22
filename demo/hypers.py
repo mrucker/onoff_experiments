@@ -12,6 +12,11 @@ from CappedIGW import CappedIGW
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
+take = 10
+n_processes = 16
+n_samples = 2
+log = 'out.log.gz'
+
 def embedder(items):
     if isinstance(items,str):
         return torch.nn.functional.normalize(model.encode([items],convert_to_tensor=True))
@@ -192,8 +197,6 @@ def generate_random_hypers(n):
 
 if __name__ == '__main__':
 
-    take = 10_000
-
     with open('LetCatTrain.jsonl',mode='rb') as f:
         examples = [ json.loads(line) for line in f ][:5000]
     ex_embeddings = embedder(examples)
@@ -206,7 +209,7 @@ if __name__ == '__main__':
 
     exp_tuples = [ (env[0], FewShotFixedStrategy(rs_00_1), val) ]
 
-    for lr,tz,gtz,bs in generate_random_hypers(2):
+    for lr,tz,gtz,bs in generate_random_hypers(n_samples):
         fhat = MyLossPredictor(
             set_size=3,
             opt_factory=lambda params: torch.optim.Adam(params,lr=lr),
@@ -219,4 +222,4 @@ if __name__ == '__main__':
             val
         ))
 
-    cb.Experiment(exp_tuples).run('out.log.gz',processes=3)
+    cb.Experiment(exp_tuples).run(log,processes=n_processes)
