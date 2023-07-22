@@ -1,4 +1,5 @@
 import json
+import warnings
 from collections import defaultdict
 from typing import Sequence, Callable
 
@@ -158,8 +159,11 @@ class MyLossPredictor(LossPredictor):
         yhat = self._regressor.pre_logits(X).squeeze(1)
         loss = self.loss(yhat,y)
         loss.mean().backward()
-        self.opt.step()
-        self.scheduler.step()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.opt.step()
+            self.scheduler.step()
 
         with torch.no_grad():
             y_av = self.y_sum/self.t

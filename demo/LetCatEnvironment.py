@@ -26,7 +26,7 @@ class LetCatEnvironment:
 
             responses = [ (self._logprobs_from_prompt(prompt+c),c) for c in self._choices ]
             best = max(responses)[1]
-            return int(best==self._test['answer'])
+            return int(best!=self._test['answer'])
 
         def _logprobs_from_prompt(self, prompt):
             encoded = self._tokenizer(prompt, return_tensors="pt").to("cpu")
