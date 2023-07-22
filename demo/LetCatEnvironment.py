@@ -72,7 +72,7 @@ class LetCatEnvironment:
                 if answer in alts: alts.remove(answer)
                 alts.append(answer)
 
-                best_const_reward = int(answer==max([(freqs[a],a) for a in alts])[1])
+                best_const_reward = int(answer!=max([(freqs[a],a) for a in alts])[1])
 
                 reward = LetCatEnvironment.Reward(test,alts[-self._n_choices:],tokenizer,model)
                 yield { 'context': prompt, 'actions': [], 'rewards': reward, 'best_const': best_const_reward}
