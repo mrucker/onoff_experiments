@@ -12,17 +12,23 @@ from CappedIGW import CappedIGW
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-take = 10
+take = 10_000
 n_processes = 16
-n_samples = 2
+n_samples = 59
 log = 'out.log.gz'
+device = 'cpu'
+
+if n_processes > 1:
+    torch.set_num_threads(1)
+
+torch.set_default_device(device)
 
 def embedder(items):
     if isinstance(items,str):
-        return torch.nn.functional.normalize(model.encode([items],convert_to_tensor=True))
+        return torch.nn.functional.normalize(model.encode([items],convert_to_tensor=True)).to(device)
     if isinstance(items,list):
         items = [ i['instruction'] for i in items]
-        return torch.nn.functional.normalize(model.encode(items,convert_to_tensor=True))
+        return torch.nn.functional.normalize(model.encode(items,convert_to_tensor=True)).to(device)
     raise AssertionError()
 
 def stratum(item):
@@ -62,6 +68,7 @@ class RandomizedSimilarity(ReferencePolicy):
         return {'temp':self._temperature, 'sampler':'RandomizedSimilarity', 'n_strata':len(self._strata_examples)}
 
     def sample(self, context):
+        torch.set_default_device('cpu')
         with torch.no_grad():
             context_stratum = self._stratum(context)
 
