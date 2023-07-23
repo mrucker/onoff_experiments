@@ -1,21 +1,30 @@
 # Infinite Action Bandits with Data Reuse
 
-This project evaluates the performance of a new large action CB algorithm.
+This repo contains two example projects of the [CappedIGW algorithm](https://arxiv.org/abs/2302.08551).
 
-This algorithm has competitive online performance and generates improved data exhaust for offline learning.
+The first project is in the `demo` directory. This project was made specifically for new users and contains:
+  1. Two demonstration notebooks that make it easy to play with CappedIGW on real world datasets
+  2. Simplified and documented implementations of CappedIGW and the Betting Martingale Normalization procedure.
 
-The original paper describing the algorithms can be found at https://arxiv.org/abs/2302.08551.
+The second project is in the `paper` directory. This project contains code to reproduce the results in the published paper. This code is harder to read than the implementations in the `demo` directory and also includes a working implementation of the algorithm to adaptively choose $\tau$.
 
-## Repo Structure:
+### Getting Started With The Demo Project:
 
-+ ./outcomes -- a directory that experimental results will be written to
-+ ./notebooks/paper.ipynb -- a Jupyter notebook which recreates the plots in the paper
-+ ./run_online.py -- This will run the online experiments and generate the data exhaust.
-+ ./run_offline.py -- This will run the offline experiments (run the online experiments first to generate data).
+To play with the experiments in the `demo` directory follow these steps:
+  1. Download this repo to your local machine
+  2. Make sure you have python installed
+  3. On the command line run `pip install notebook`
+  4. On the command line navigate to your download of the repo
+  5. On the command line run `jupyter notebook`
+  6. From your web browser open either of the notebook files in `demo`
 
-## Dependencies
-+ Pytorch    (see the pytorch website)
-+ Scipy      (pip install scipy)
-+ Matplotlib (pip install matplotlib)
-+ Numpy      (pip install numpy)
-+ Coba       (pip install coba==6.2.6)
+### Getting Started With The Paper Project:
+
+To run the experiments in the `paper` directory follow these steps:
+  1. Download this repo to your local machine
+  2. Make sure you have python installed
+  3. On the command line navigate to your download of the repo
+  4. On the command line run `pip -r ./paper/requirements.txt`
+  5. On the command line run `python ./paper/run_online.py`
+  6. On the command line run `python ./paper/run_offline.py`
+  7. Open `plots.ipynb` to create plots from the paper

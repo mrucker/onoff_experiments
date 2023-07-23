@@ -169,6 +169,7 @@ class CorralCappedIGW:
 
     def find_beta_martingale(self,fhat,gamma,x,tau):
 
+        tolerance = 1e-2
         clip_min = np.core.umath.maximum
 
         #Note, in the g below f==(self.lamb+gamma*fhat) and beta==(gamma*beta)
@@ -179,7 +180,7 @@ class CorralCappedIGW:
         g     = lambda f,beta: tau/clip_min(f-beta,self.lamb) 
         cs    = BettingNormCS(g=g, tau=tau, gamma=gamma, alpha=alpha, lb=1/self.kappa_infty)
 
-        N  = 10_000 # we shouldn't ever hit this but just in case...
+        N  = 2**15 # we shouldn't ever hit this but just in case...
 
         def batched_base_action_sampler():
             while True:
@@ -189,11 +190,12 @@ class CorralCappedIGW:
 
             cs.addobs(self.lamb+gamma*f)
 
-            if n % 10 == 0:
+            if n & (n-1) == 0:
                 cs.updatelowercs()
                 cs.updateuppercs()
                 l, u = cs.getci()
-                if l > u: break
+                if l + tolerance > u: 
+                    break
 
         cb.CobaContext.learning_info['samples_martin'].append(n)
         return min(u,l) + torch.rand(size=(1,)).item()*abs(u-l)

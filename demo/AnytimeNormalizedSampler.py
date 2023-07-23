@@ -8,7 +8,7 @@ from BettingMartingale import BettingMartingale
 
 class AnytimeNormalizedSampler:
 
-    def __init__(self, tau: float, mu: ReferencePolicy, kappa_infty: float, alpha:float, delta_beta:float) -> None:
+    def __init__(self, tau: float, mu: ReferencePolicy, kappa_infty: float, alpha:float, delta_beta:float):
 
         assert tau >= 1
         assert kappa_infty >= 1

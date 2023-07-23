@@ -199,33 +199,30 @@ def loguniform(low, high, n) -> torch.Tensor:
     return uniform(*torch.tensor([low,high]).log(),n).exp()
 
 def generate_random_hypers(n):
-
     lrs  = loguniform(1e-3,1e1,n).tolist()
     tzs  = loguniform(1e-1,1e4,n).tolist()
     gtzs = loguniform(1e-5,1e2,n).tolist()
 
     yield from zip(lrs,tzs,gtzs)
 
-if __name__ == '__main__':
+with open('LetCatTrain.jsonl',mode='rb') as f:
+    examples = [ json.loads(line) for line in f ][:5000]
+ex_embeddings = embedder(examples)
 
-    with open('LetCatTrain.jsonl',mode='rb') as f:
-        examples = [ json.loads(line) for line in f ][:5000]
-    ex_embeddings = embedder(examples)
+rs_00_1  = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=1 , temperature=.00, set_size=3)
+rs_05_30 = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=30, temperature=.05, set_size=3)
 
-    rs_00_1  = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=1 , temperature=.00, set_size=3)
-    rs_05_30 = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=30, temperature=.05, set_size=3)
+env = cb.Environments(LetCatEnvironment()).take(take).batch(1)
+val = cb.OnPolicyEvaluator()
+lrn = [ FewShotFixedStrategy(rs_00_1) ]
 
-    env = cb.Environments(LetCatEnvironment()).take(take).batch(1)
-    val = cb.OnPolicyEvaluator()
-    lrn = [ FewShotFixedStrategy(rs_00_1) ]
+for lr,tz,gtz in generate_random_hypers(n_samples):
+    fhat = MyLossPredictor(
+        set_size=3,
+        opt_factory=lambda params: torch.optim.Adam(params,lr=lr),
+        sched_factory=lambda opt: torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lambda t:(1+t/tz)**(-.5)),
+        params = {'lr':lr, 'tz':tz, 'gtz':gtz}
+    )
+    lrn.append(CappedIGW(mu=rs_05_30, fhat=fhat, gamma_sched=lambda t:(1+t/gtz)**(0.5)))
 
-    for lr,tz,gtz in generate_random_hypers(n_samples):
-        fhat = MyLossPredictor(
-            set_size=3,
-            opt_factory=lambda params: torch.optim.Adam(params,lr=lr),
-            sched_factory=lambda opt: torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lambda t:(1+t/tz)**(-.5)),
-            params = {'lr':lr, 'tz':tz, 'gtz':gtz}
-        )
-        lrn.append(CappedIGW(mu=rs_05_30, fhat=fhat, gamma_sched=lambda t:(1+t/gtz)**(0.5)))
-
-    cb.Experiment(env,lrn).run(log,processes=n_processes)
+cb.Experiment(env,lrn).run(log,processes=n_processes)

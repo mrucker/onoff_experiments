@@ -1,0 +1,6 @@
+torch
+scipy
+matplotlib
+numpy
+coba==7.0.2
+notebook
