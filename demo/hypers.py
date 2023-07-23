@@ -108,17 +108,18 @@ class MyLossPredictor(LossPredictor):
         def loss(self, X):
             return self.sigmoid(self.pre_logits(X))
 
-    def __init__(self, *, set_size:int, opt_factory, sched_factory) -> None:
+    def __init__(self, *, set_size:int, opt_factory, sched_factory, params={}) -> None:
         self._regressor = MyLossPredictor.LogisticRegressor(4*set_size)
         self.loss       = torch.nn.BCEWithLogitsLoss(reduction='none')
         self.opt        = opt_factory(self._regressor.parameters())
         self.scheduler  = sched_factory(self.opt)
         self.y_sum      = 0
         self.t          = 0
+        self._params    = params
 
     @property
     def params(self):
-        return self._regressor.params
+        return {**self._regressor.params, **self._params}
 
     def _features(self,x,a):
         features = []
@@ -199,12 +200,11 @@ def loguniform(low, high, n) -> torch.Tensor:
 
 def generate_random_hypers(n):
 
-    lrs    = loguniform(1e-3,1e1,n).tolist()
-    tzs    = loguniform(1e1,1e3 ,n).tolist()
-    gtzs   = loguniform(1e-4,1e1,n).tolist()
-    bsizes = uniform(8,256,n).int().tolist()
+    lrs  = loguniform(1e-3,1e1,n).tolist()
+    tzs  = loguniform(1e-1,1e4,n).tolist()
+    gtzs = loguniform(1e-5,1e2,n).tolist()
 
-    yield from zip(lrs,tzs,gtzs,bsizes)
+    yield from zip(lrs,tzs,gtzs)
 
 if __name__ == '__main__':
 
@@ -217,20 +217,15 @@ if __name__ == '__main__':
 
     env = cb.Environments(LetCatEnvironment()).take(take)
     val = cb.OnPolicyEvaluator()
+    lrn = [ FewShotFixedStrategy(rs_00_1) ]
 
-    exp_tuples = [ (env[0], FewShotFixedStrategy(rs_00_1), val) ]
-
-    for lr,tz,gtz,bs in generate_random_hypers(n_samples):
+    for lr,tz,gtz in generate_random_hypers(n_samples):
         fhat = MyLossPredictor(
             set_size=3,
             opt_factory=lambda params: torch.optim.Adam(params,lr=lr),
-            sched_factory=lambda opt: torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lambda t:(1+t/tz)**(-.5))
+            sched_factory=lambda opt: torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lambda t:(1+t/tz)**(-.5)),
+            params = {'lr':lr, 'tz':tz, 'gtz':gtz}
         )
+        lrn.append(CappedIGW(mu=rs_05_30, fhat=fhat, gamma_sched=lambda t:(1+t/gtz)**(0.5)))
 
-        exp_tuples.append((
-            env.batch(bs)[0],
-            CappedIGW(mu=rs_05_30, fhat=fhat, gamma_sched=lambda t: (1+t/gtz)**(0.5)),
-            val
-        ))
-
-    cb.Experiment(exp_tuples).run(log,processes=n_processes)
+    cb.Experiment(env,lrn).run(log,processes=n_processes)
