@@ -215,7 +215,7 @@ if __name__ == '__main__':
     rs_00_1  = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=1 , temperature=.00, set_size=3)
     rs_05_30 = RandomizedSimilarity(embedder, examples, ex_embeddings, batch_size=30, temperature=.05, set_size=3)
 
-    env = cb.Environments(LetCatEnvironment()).take(take)
+    env = cb.Environments(LetCatEnvironment()).take(take).batch(1)
     val = cb.OnPolicyEvaluator()
     lrn = [ FewShotFixedStrategy(rs_00_1) ]
 
