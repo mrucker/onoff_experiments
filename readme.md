@@ -4,7 +4,7 @@ This repo contains two example projects of the [CappedIGW algorithm](https://arx
 
 The first project is in the `demo` directory. This project was made specifically for new users and contains:
   1. Two demonstration notebooks that make it easy to play with CappedIGW on real world datasets
-  2. Simplified and documented implementations of CappedIGW and the Betting Martingale Normalization procedure.
+  2. Simplified and documented implementations of CappedIGW and Betting Martingale Normalization.
 
 The second project is in the `paper` directory. This project contains code to reproduce the results in the published paper. This code is harder to read than the implementations in the `demo` directory and also includes a working implementation of the algorithm to adaptively choose $\tau$.
 
