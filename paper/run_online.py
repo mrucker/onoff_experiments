@@ -6,10 +6,12 @@ from oracles  import LinearArgmin, ArgminPlusDispersion
 from learners import LargeActionLearner
 from rewards  import ScaledRewards
 
+import sys
+
 n_batches   = 10_000
 n_shuffles  = 30
 batch_size  = 8
-n_processes = 12
+n_processes = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 
 out_file = "online.zip"
 
@@ -23,6 +25,8 @@ if n_processes > 1:
     torch.set_num_threads(1)
 
 if __name__ == "__main__":
+
+    print(f"RUNNING online with {n_processes} processes")
 
     cb.Environments.cache_dir(".coba_cache")
 
@@ -58,4 +62,4 @@ if __name__ == "__main__":
     
     envs = envs.shuffle(n=n_shuffles).take(n_batches*batch_size).impute(["median","mode"]).filter(ScaledRewards()).scale().batch(batch_size)
 
-    envs.logged(learners).save(out_file,overwrite=True,processes=n_processes)
+    envs.logged(learners).save(out_file,processes=n_processes)

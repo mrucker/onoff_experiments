@@ -5,13 +5,17 @@ from tasks    import MyEvaluator
 from oracles  import MlpArgmin, ArgminPlusDispersion
 from learners import LargeActionLearner
 
-n_processes = 8
+import sys
+
+n_processes = 8 if len(sys.argv) == 1 else int(sys.argv[1])
 out_file    = "offline.gz"
 
 if n_processes > 1:
     torch.set_num_threads(1)
 
 if __name__ == "__main__":
+
+    print(f"RUNNING offline with {n_processes} processes")
 
     log = cb.Environments.from_save("online.zip").shuffle(seed=1)
     lrn = [
