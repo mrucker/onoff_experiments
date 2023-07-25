@@ -45,17 +45,18 @@ class LetCatEnvironment:
         self._n_choices = n_choices
         self._model     = model
         self._rng       = np.random.default_rng(seed)
+        self.tokenizer = AutoTokenizer.from_pretrained(self._model, padding_side="left")
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.model = AutoModelForCausalLM.from_pretrained(self._model)
+        self.model.config.pad_token_id = self.model.config.eos_token_id
 
     @property
     def params(self):
         return {'data':'LetCat', 'n_alts':self._n_choices, 'model': self._model}
 
     def read(self) -> Iterable[dict]:
-
-        tokenizer = AutoTokenizer.from_pretrained(self._model, padding_side="left")
-        tokenizer.pad_token = tokenizer.eos_token
-        model = AutoModelForCausalLM.from_pretrained(self._model)
-        model.config.pad_token_id = model.config.eos_token_id
+        tokenizer = self.tokenizer
+        model = self.model
 
         with open('LetCatTest.jsonl', 'r') as f:
             tests = [json.loads(line) for line in f]

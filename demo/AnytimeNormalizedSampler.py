@@ -69,27 +69,29 @@ class AnytimeNormalizedSampler:
             if l + self.delta_beta > h: break
             if n > N: break
 
-        l = martingale.getci()[0]
-        return l
+        return min(martingale.getci())
 
 if __name__ == '__main__':
     import numpy as np
     import timeit
 
     def test_once(gen,fails):
-
         class UniformReferencePolicy:
             def sample(self,context):
                 while True:
                     yield gen.uniform(0,1,size=(100,))
 
         tau = gen.uniform(50,75)
-        fhat = lambda x,a: 1.*(2*a*tau > 1)
+        class Fhat:
+            def predict(self, _context, actions):
+                return np.array(2 * tau * actions > 1, dtype=float)
+        fhat = Fhat()
         gamma = gen.uniform(2,10)
         kappa_infty = 24
         alpha = .05
+        delta_beta = 1e-2
 
-        ns = AnytimeNormalizedSampler(tau,UniformReferencePolicy(),kappa_infty,alpha)
+        ns = AnytimeNormalizedSampler(tau,UniformReferencePolicy(),kappa_infty,alpha,delta_beta)
         densities = [ns.sample(None,fhat,gamma)[1] for _ in range(1000)]
 
         mean_density = np.mean(densities)

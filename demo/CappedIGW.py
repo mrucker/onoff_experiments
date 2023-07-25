@@ -8,11 +8,11 @@ class CappedIGW:
     def __init__(self, *,
         mu:ReferencePolicy,
         fhat:LossPredictor,
-        tau:float = 100,
+        tau:float = 10,
         gamma_sched: Callable[[int],float] = math.sqrt,
-        kappa_infty:float=24,
-        alpha:float=0.05,
-        delta_beta:float=1e-2) -> None:
+        kappa_infty:float = 100,
+        alpha:float = 0.05,
+        delta_beta:float = 1e-2) -> None:
         self.gamma_sched = gamma_sched
         self.sampler     = AnytimeNormalizedSampler(tau,mu,kappa_infty,alpha,delta_beta)
         self.fhat        = fhat

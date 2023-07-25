@@ -20,6 +20,6 @@ class CauchyNetwork(torch.nn.Module):
             rff = (torch.matmul(X, self.rffW) + self.rffb).cos() / self.sqrtrff
         return self.linear(rff)
     
-    def loss(self, X):
+    def predictions(self, X):
         return self.sigmoid(self.pre_logits(X))
     
