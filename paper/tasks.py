@@ -1,57 +1,42 @@
 import copy
-
 from statistics import mean
-from coba.experiments import SimpleEvaluation
-from coba.environments.filters import Unbatch, Batch
-
-from coba.random import CobaRandom
-from coba.environments.filters import Unbatch, Batch
+import coba as cb
 
 class MyEvaluator:
 
-    def __init__(self, epochs=False) -> None:
-        self._epochs = epochs
+    def evaluate(self, environment, learner):
+        rng = cb.CobaRandom(1)
+        env = cb.Environments(environment).materialize()
+        env_length = len(list(env[0].read()))
 
-    def process(self, learner, interactions):
-        
-        rng = CobaRandom(1)
-        interactions = list(interactions)
+        def reshuffle(_env: cb.Environments):
+            n_batches = .05*len(list(_env[0].read()))
+            return _env.unbatch().shuffle(seed=rng.randint(0,10_000)).batch(8)
 
-        def reshuffle(examples):
-            return list(Batch(int(.05*len(examples))).filter(rng.shuffle(list(Unbatch().filter(examples)))))
-
-        def train(learner,examples):
-            list(SimpleEvaluation(learn=True,predict=False).process(learner,examples))
+        def train(_env,learner):
+            list(cb.OffPolicyEvaluator(predict=False).evaluate(_env[0],learner))
             return copy.deepcopy(learner)
 
-        def validate(learner,examples):
-            return mean([mean(i['reward']) for i in SimpleEvaluation(learn=False,predict=True).process(learner,examples)])
+        def validate(_env,learner):
+            return mean([i['reward'] for i in cb.OffPolicyEvaluator(learn=False).evaluate(_env[0],learner)])
 
-        if not self._epochs:
-            for interaction, result in zip(interactions,SimpleEvaluation().process(learner,interactions)):
-                if 'greed_act' in result:
-                    result['greed_rwd'] = mean(interaction['rewards'].eval(result.pop('greed_act')))
-                yield result
+        trn_end = int(env_length*.8)
+        tst_beg = int(env_length*.9)
+
+        trn = env.slice(None   ,trn_end)
+        val = env.slice(trn_end,tst_beg).batch(1)
+        tst = env.slice(tst_beg,None   ).batch(1)
+
+        old_lrn = learner
+        old_val = validate(val           ,learner)
+        new_lrn = train   (reshuffle(trn),learner)
+        new_val = validate(val           ,learner)
         
-        else:
-            trn_end = int(len(interactions)*.8)
-            tst_beg = int(len(interactions)*.9)
+        while new_val > old_val:
+            old_lrn = new_lrn
+            old_val = new_val
 
-            trn = interactions[:trn_end]
-            val = interactions[trn_end:tst_beg]
-            tst = interactions[tst_beg:]
+            new_lrn = train   (reshuffle(trn), learner)
+            new_val = validate(val           , learner)
 
-            old_lrn = learner
-            old_val = validate(learner,reshuffle(val))
-
-            new_lrn = train   (learner,reshuffle(trn))
-            new_val = validate(learner,reshuffle(val))
-
-            while new_val > old_val:
-                old_lrn = new_lrn
-                old_val = new_val
-
-                new_lrn = train   (learner,reshuffle(trn))
-                new_val = validate(learner,reshuffle(val)+reshuffle(val)+reshuffle(val)+reshuffle(val))
-
-            yield from SimpleEvaluation('reward',learn=False,predict=True).process(old_lrn,tst)
+        yield from cb.OnPolicyEvaluator(learn=False).evaluate(tst[0],old_lrn)
