@@ -36,24 +36,29 @@ class LargeActionLearner:
         if not self.opt: self.initialize(context.shape[1])
 
         with torch.no_grad():
-            ahatstar = self.fhat.argmin(context)
-            fhatstar = self.fhat(context,ahatstar)
+            if self.sampler is None:
+                actions = self.fhat.argmin(context).flatten().tolist()
+                density = [None]*len(actions)
+                return actions,density
+            else:            
+                ahatstar = self.fhat.argmin(context)
+                fhatstar = self.fhat(context,ahatstar)
+                actions, dense, algo, invpalgo = self.sampler.sample(self.fhat, context, fhatstar, ahatstar)
+                fhats = self.fhat(context,torch.tensor(actions).unsqueeze(1)).flatten()
 
-            actions, dense, algo, invpalgo = self.sampler.sample(self.fhat, context, fhatstar, ahatstar)
+                cb.CobaContext.learning_info["ahatgreedy"] = ahatstar.flatten().tolist()
+                cb.CobaContext.learning_info["fhatgreedy"] = fhatstar.flatten().tolist()
+                cb.CobaContext.learning_info["fhatpolicy"] = fhats.tolist()
 
-            fhats = self.fhat(context,torch.tensor(actions).unsqueeze(1)).flatten()
+                return actions, dense, {'algo':algo, 'invpalgo':invpalgo}
 
-            cb.CobaContext.learning_info["ahatgreedy"] = ahatstar.flatten().tolist()
-            cb.CobaContext.learning_info["fhatgreedy"] = fhatstar.flatten().tolist()
-            cb.CobaContext.learning_info["fhatpolicy"] = fhats.tolist()
-
-            return actions, dense, {'algo':algo, 'invpalgo':invpalgo}
-
-    def learn(self, context, actions, action, reward, probs, algo, invpalgo):
+    def learn(self, context, actions, action, reward, probs, **kwargs):
         self.t+= 1
         action  = torch.tensor(action).unsqueeze(1)
         context = torch.tensor(context,dtype=torch.float32)
         reward  = torch.tensor(reward).unsqueeze(1)
+
+        if kwargs: algo, invpalgo = kwargs['algo'],kwargs['invpalgo']
 
         if not self.opt: self.initialize(context.shape[1])
 
