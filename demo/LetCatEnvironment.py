@@ -29,7 +29,7 @@ class LetCatEnvironment:
             return int(best!=self._test['answer'])
 
         def _logprobs_from_prompt(self, prompt):
-            encoded = self._tokenizer(prompt, return_tensors="pt").to("cpu")
+            encoded = self._tokenizer(prompt, return_tensors="pt")
             input_ids = encoded["input_ids"]
             output = self._model(input_ids=input_ids)
             shift_labels = input_ids[..., 1:].contiguous()
