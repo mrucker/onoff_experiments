@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 class LetCatEnvironment:
 
-    class Reward:
+    class Loss:
 
         def __init__(self, test, choices:Sequence[str], tokenizer, model):
             self._test      = test
@@ -75,5 +75,5 @@ class LetCatEnvironment:
 
                 best_const_loss = int(answer!=max([(freqs[a],a) for a in alts])[1])
 
-                reward = LetCatEnvironment.Reward(test,alts[-self._n_choices:],tokenizer,model)
-                yield { 'context': prompt, 'actions': [], 'rewards': reward, 'best_const': best_const_loss}
+                loss = LetCatEnvironment.Loss(test,alts[-self._n_choices:],tokenizer,model)
+                yield { 'context': prompt, 'actions': [], 'rewards': loss, 'best_const': best_const_loss}
